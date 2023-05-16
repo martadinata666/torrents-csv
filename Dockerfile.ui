@@ -26,8 +26,16 @@ RUN case ${TARGETPLATFORM} in \
 # The runner debian
 FROM debian:sid-slim
 # Copy resources
-COPY --from=builder /app/pkg /app/
-COPY --from=dist /app/dist /app/dist
-RUN ls /app/server
+# Create a new user guacamole
+ARG UID=1000
+ARG GID=1000
+ARG USER=perseus
+RUN groupadd --gid $GID $USER
+RUN useradd --system --create-home --shell /usr/sbin/nologin --uid $UID --gid $GID $USER
+
+# Run with user guacamole
+USER $USER
+COPY --chown=$USER:$USER --from=builder /app/pkg /app/
+COPY --chown=$USER:USER --from=dist /app/dist /app/dist
 EXPOSE 8080
 CMD ["/app/server"]
