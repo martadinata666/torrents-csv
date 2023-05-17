@@ -3,44 +3,44 @@ FROM --platform=${BUILDPLATFORM} dessalines/torrents-csv-ui-perseus as dist
 
 # Builder
 FROM --platform=${BUILDPLATFORM} martadinata666/rust:latest as builder
+ARG TARGETPLATFORM
 USER root
-RUN cargo install perseus-cli
+#RUN cargo install perseus-cli
 WORKDIR /app
 COPY . .
-ARG TARGETPLATFORM
+
 # Disable optimization, a bit larger file but doesn't wait 80mnutes
-USER root
 RUN echo "[profile.release]\nopt-level = 0\ndebug = false\nsplit-debuginfo = '...'  # Platform-specific.\ndebug-assertions = false\noverflow-checks = false\nlto = false\npanic = 'unwind'\nincremental = false\ncodegen-units = 16\nrpath = false" >> Cargo.toml
 RUN cat Cargo.toml
-#RUN case ${TARGETPLATFORM} in \
-#         "linux/amd64")  CARGO_BUILD_TARGET=x86_64-unknown-linux-gnu  ;; \
-#         "linux/arm64")  CARGO_BUILD_TARGET=aarch64-unknown-linux-gnu  ;; \
-#    esac \ 
-#    && cargo build --release --target=$CARGO_BUILD_TARGET && \
-#    ls target && \
-#    mkdir ./pkg && \
-#    cp target/$CARGO_BUILD_TARGET/release/torrents-csv-ui-perseus ./pkg/server;
-
 RUN case ${TARGETPLATFORM} in \
          "linux/amd64")  CARGO_BUILD_TARGET=x86_64-unknown-linux-gnu  ;; \
          "linux/arm64")  CARGO_BUILD_TARGET=aarch64-unknown-linux-gnu  ;; \
     esac \ 
-    && perseus deploy --no-minify-js --no-system-tools-cache --cargo-engine-args="--target=$CARGO_BUILD_TARGET" && \
-    ls pkg 
+    && cargo build --release --target=$CARGO_BUILD_TARGET && \
+    ls target && \
+    mkdir ./pkg && \
+    cp target/$CARGO_BUILD_TARGET/release/torrents-csv-ui-perseus ./pkg/server;
+
+#RUN case ${TARGETPLATFORM} in \
+#         "linux/amd64")  CARGO_BUILD_TARGET=x86_64-unknown-linux-gnu  ;; \
+#         "linux/arm64")  CARGO_BUILD_TARGET=aarch64-unknown-linux-gnu  ;; \
+#    esac \ 
+#    && perseus deploy --no-minify-js --no-system-tools-cache --cargo-engine-args="--target=$CARGO_BUILD_TARGET" && \
+#    ls pkg 
 
 # The runner debian
 FROM debian:sid-slim
 # Copy resources
-# Create a new user guacamole
+# Create a new user perseus
 ARG UID=1000
 ARG GID=1000
 ARG USER=perseus
 RUN groupadd --gid $GID $USER
-RUN useradd --system --create-home --shell /usr/sbin/nologin --uid $UID --gid $GID $USER
+RUN useradd --system --create-home --shell /bin/bash --uid $UID --gid $GID $USER
 
 # Run with user guacamole
 USER $USER
 COPY --chown=$USER:$USER --from=builder /app/pkg /app/
-#COPY --chown=$USER:USER --from=dist /app/dist /app/dist
+COPY --chown=$USER:USER --from=dist /app/dist /app/dist
 EXPOSE 8080
 CMD ["/app/server"]
