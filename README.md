@@ -1,5 +1,6 @@
 # Torrents.csv
 
+* https://git.torrents-csv.ml/heretic/
 <!-- Torrents.csv - An open source, collaborative repository of torrents, with a self-hostable web server.   -->
 
 ### Docker Compose
