@@ -1,10 +1,10 @@
 # Torrents.csv
 
-* https://git.torrents-csv.ml/heretic/
+* https://git.torrents-csv.com/heretic/
 <!-- Torrents.csv - An open source, collaborative repository of torrents, with a self-hostable web server.   -->
 
 ### Docker Compose
-* get [nginx.conf](https://git.torrents-csv.ml/heretic/torrents-csv-server/src/branch/main/docker/prod/nginx.conf)
+* get [nginx.conf](https://git.torrents-csv.com/heretic/torrents-csv-server/src/branch/main/docker/prod/nginx.conf)
 ```
 version: '3.7'
 
