@@ -27,7 +27,7 @@ jobs:
 
       - name: Clone upstream repo
         run: |
-             git clone --depth=1 https://git.torrents-csv.ml/heretic/torrents-csv-ui-perseus.git torrents-csv-ui
+             git clone --depth=1 https://git.torrents-csv.com/heretic/torrents-csv-ui-perseus.git torrents-csv-ui
              cp Dockerfile.ui torrents-csv-ui/Dockerfile
              cd torrents-csv-ui/
              tree ./
