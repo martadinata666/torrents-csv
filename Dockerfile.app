@@ -6,8 +6,6 @@ RUN apk add git sqlite3 && \
     ./scripts/import_to_sqlite.sh && \
     mv ./torrents.db ../
 
-# Import the current csv to a sqlite3 db file, to use as a consistent store.
-./import_to_sqlite.sh
 FROM --platform=$BUILDPLATFORM tonistiigi/xx:master AS xx
 
 FROM --platform=$BUILDPLATFORM rust:alpine as base
