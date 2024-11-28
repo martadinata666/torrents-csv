@@ -1,6 +1,6 @@
 FROM alpine as db
 WORKDIR /app
-RUN apk add git sqlite3 && \
+RUN apk add git sqlite && \
     git clone https://git.torrents-csv.com/heretic/torrents-csv-data && \
     cd torrents-csv-data && \
     ./scripts/import_to_sqlite.sh && \
