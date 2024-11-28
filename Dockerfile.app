@@ -1,5 +1,13 @@
-FROM dessalines/torrents-csv-server:latest as db
+FROM alpine as db
+WORKDIR /app
+RUN apk add git && \
+    git clone https://git.torrents-csv.com/heretic/torrents-csv-data && \
+    cd torrents-csv-data && \
+    ./import_to_sqlite.sh && \
+    mv ./torrents.db ../
 
+# Import the current csv to a sqlite3 db file, to use as a consistent store.
+./import_to_sqlite.sh
 FROM --platform=$BUILDPLATFORM tonistiigi/xx:master AS xx
 
 FROM --platform=$BUILDPLATFORM rust:alpine as base
