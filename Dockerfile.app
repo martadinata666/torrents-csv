@@ -4,7 +4,8 @@ RUN apk add git sqlite && \
     git clone https://git.torrents-csv.com/heretic/torrents-csv-data && \
     cd torrents-csv-data && \
     ./scripts/import_to_sqlite.sh && \
-    mv ./torrents.db ../
+    ls . && \
+    ls .. 
 
 FROM --platform=$BUILDPLATFORM tonistiigi/xx:master AS xx
 
@@ -44,7 +45,7 @@ ENV TORRENTS_CSV_DB_FILE=/app/torrents.db
 ENV TORRENTS_CSV_FRONT_END_DIR=/app/dist
 # Copy resources
 COPY --from=stripper /app/torrents-csv-service /app/torrents-csv-service
-COPY --from=db /app/torrents.db /app/torrents.db
+COPY --from=db /app/torrents-csv-data/torrents.db /app/torrents.db
 EXPOSE 8080
 USER myuser
 CMD ["/app/torrents-csv-service"]
