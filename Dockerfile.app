@@ -1,9 +1,9 @@
 FROM alpine as db
 WORKDIR /app
-RUN apk add git && \
+RUN apk add git sqlite3 && \
     git clone https://git.torrents-csv.com/heretic/torrents-csv-data && \
     cd torrents-csv-data && \
-    ./import_to_sqlite.sh && \
+    ./scripts/import_to_sqlite.sh && \
     mv ./torrents.db ../
 
 # Import the current csv to a sqlite3 db file, to use as a consistent store.
