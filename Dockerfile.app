@@ -2,8 +2,8 @@ FROM alpine as db
 WORKDIR /app
 RUN apk add git sqlite && \
     git clone --depth=1 https://git.torrents-csv.com/heretic/torrents-csv-data && \
-    cd torrents-csv-data && \
-    ./scripts/import_to_sqlite.sh && \
+    cd torrents-csv-data/scripts && \
+    ./import_to_sqlite.sh && \
     ls . && \
     ls .. 
 
