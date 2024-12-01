@@ -33,7 +33,7 @@ RUN cargo install -f wasm-bindgen-cli --version 0.2.93
 RUN cargo binstall cargo-leptos -y
 
 # Add the targets
-#RUN rustup target add wasm32-unknown-unknown
+RUN rustup target add wasm32-unknown-unknown
 
 
 # Copy the data from node
