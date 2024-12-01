@@ -27,13 +27,14 @@ RUN case ${TARGETPLATFORM} in \
     tar -xvf cargo-binstall.tgz && \
     cp cargo-binstall /usr/local/cargo/bin
 
+# This project need 0.2.93, rather newer version
+RUN cargo install -f wasm-bindgen-cli --version 0.2.93
 # Install cargo-leptos
 RUN cargo binstall cargo-leptos -y
 
 # Add the targets
 RUN rustup target add wasm32-unknown-unknown
-# This project need 0.2.93, rather newer version
-RUN cargo install -f wasm-bindgen-cli --version 0.2.93
+
 
 # Copy the data from node
 COPY --from=node /build/leptos /build
