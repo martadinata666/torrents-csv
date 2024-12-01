@@ -11,7 +11,8 @@ RUN corepack enable
 #COPY package.json pnpm-lock.yaml ./
 RUN pnpm i
 
-FROM rustlang/rust:nightly-bullseye AS builder
+FROM --platform=${BUILDPLATFORM} rustlang/rust:nightly-bullseye AS builder
+ARG TARGETPLATFORM
 RUN apt update && apt install -y curl wget
 
 # Install cargo-binstall, which makes it easier to install other
