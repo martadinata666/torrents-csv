@@ -1,32 +1,52 @@
-# UI Dist
-FROM --platform=${BUILDPLATFORM} dessalines/torrents-csv-ui-perseus as dist
+ROM node AS node
+WORKDIR /build
 
-# Builder
-FROM --platform=${BUILDPLATFORM} martadinata666/rust:latest as builder
-ARG TARGETPLATFORM
-USER root
-#RUN cargo install perseus-cli
-WORKDIR /app
+# Enable corepack to use pnpm
+RUN corepack enable
+
+# Cache deps
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm i
+
+FROM rustlang/rust:nightly-bullseye AS builder
+
+# Install upx
+RUN apt update && apt install -y upx-ucl
+
+# Install cargo-binstall, which makes it easier to install other
+# cargo extensions like cargo-leptos
+
+# Get cargo
+RUN case ${TARGETPLATFORM} in \
+         "linux/amd64")  CARGO_BUILD_TARGET=x86_64-unknown-linux-musl  ;; \
+         "linux/arm64")  CARGO_BUILD_TARGET=aarch64-unknown-linux-musl  ;; \
+    esac && \
+    wget https://github.com/cargo-bins/cargo-binstall/releases/latest/download/cargo-binstall-${CARGO_BUILD_TARGET}.tgz && \
+    tar -xvf cargo-binstall-${CARGO_BUILD_TARGET}.tgz && \
+    cp cargo-binstall /usr/local/cargo/bin
+
+# Install cargo-leptos
+RUN cargo binstall cargo-leptos -y
+
+# Add the targets
+RUN rustup target add wasm32-unknown-unknown
+
+# Copy the data
+WORKDIR /build
 COPY . .
 
-# Disable optimization, a bit larger file but doesn't wait 80mnutes
-RUN echo "[profile.release]\nopt-level = 0\ndebug = false\nsplit-debuginfo = '...'  # Platform-specific.\ndebug-assertions = false\noverflow-checks = false\nlto = false\npanic = 'unwind'\nincremental = false\ncodegen-units = 16\nrpath = false" >> Cargo.toml
-RUN cat Cargo.toml
-RUN case ${TARGETPLATFORM} in \
-         "linux/amd64")  CARGO_BUILD_TARGET=x86_64-unknown-linux-gnu  ;; \
-         "linux/arm64")  CARGO_BUILD_TARGET=aarch64-unknown-linux-gnu  ;; \
-    esac \ 
-    && cargo build --release --target=$CARGO_BUILD_TARGET && \
-    ls target && \
-    mkdir ./pkg && \
-    cp target/$CARGO_BUILD_TARGET/release/torrents-csv-ui-perseus ./pkg/server;
+# Copy the node_modules for daisyui, and the node binary
+COPY --from=node /build/node_modules ./node_modules
+COPY --from=node /usr/local/bin /usr/local/bin
 
-#RUN case ${TARGETPLATFORM} in \
-#         "linux/amd64")  CARGO_BUILD_TARGET=x86_64-unknown-linux-gnu  ;; \
-#         "linux/arm64")  CARGO_BUILD_TARGET=aarch64-unknown-linux-gnu  ;; \
-#    esac \ 
-#    && perseus deploy --no-minify-js --no-system-tools-cache --cargo-engine-args="--target=$CARGO_BUILD_TARGET" && \
-#    ls pkg 
+# Build the release
+ENV LEPTOS_TAILWIND_VERSION v3.3.6
+ENV LEPTOS_WASM_OPT_VERSION version_119
+RUN cargo leptos build --release
+
+# Compress with upx
+RUN upx --best --lzma /build/target/release/tcl
+
 
 # The runner debian
 FROM debian:sid-slim
@@ -34,13 +54,16 @@ FROM debian:sid-slim
 # Create a new user perseus
 ARG UID=1000
 ARG GID=1000
-ARG USER=perseus
+ARG USER=torrents-csv
 RUN groupadd --gid $GID $USER
 RUN useradd --system --create-home --shell /bin/bash --uid $UID --gid $GID $USER
 
-# Run with user guacamole
+COPY --from=builder /build/target/release/tcl /app/
+COPY --from=builder /build/target/site /app/site
+
+ENV APP_ENVIRONMENT "production"
+ENV LEPTOS_SITE_ROOT "/app/site"
+ENV LEPTOS_SITE_ADDR "0.0.0.0:3000"
+EXPOSE 3000
 USER $USER
-COPY --chown=$USER:$USER --from=builder /app/pkg /app/
-COPY --chown=$USER:USER --from=dist /app/dist /app/dist
-EXPOSE 8080
-CMD ["/app/server"]
+CMD ["/app/tcl"]
