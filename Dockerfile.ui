@@ -8,7 +8,7 @@ WORKDIR /build/leptos
 RUN corepack enable
 
 # Cache deps
-COPY package.json pnpm-lock.yaml ./
+#COPY package.json pnpm-lock.yaml ./
 RUN pnpm i
 
 FROM rustlang/rust:nightly-bullseye AS builder
