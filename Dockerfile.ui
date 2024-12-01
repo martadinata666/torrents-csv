@@ -1,6 +1,6 @@
 FROM node AS node
-# Install upx
-RUN apt update && apt install -y upx-ucl git
+# Install upx #somehow apt respond to package missing upx-ucl
+RUN apt update && apt install -y git
 RUN git clone --depth=1 https://git.torrents-csv.com/heretic/torrents-csv-leptos /build/leptos
 WORKDIR /build/leptos
 
@@ -38,7 +38,7 @@ COPY --from=node /build/leptos /build
 WORKDIR /build
 
 # Copy the node_modules for daisyui, and the node binary
-COPY --from=node /build/node_modules ./node_modules
+COPY --from=node /build/leptos/node_modules ./node_modules
 COPY --from=node /usr/local/bin /usr/local/bin
 
 # Build the release
@@ -47,8 +47,8 @@ ENV LEPTOS_WASM_OPT_VERSION version_119
 RUN cargo leptos build --release
 
 # Compress with upx
-RUN upx --best --lzma /build/target/release/tcl
-
+#RUN upx --best --lzma /build/target/release/tcl
+# Skip compress due uninstallable upx-ucl
 
 # The runner debian
 FROM debian:sid-slim
