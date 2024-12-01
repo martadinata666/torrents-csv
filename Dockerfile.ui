@@ -29,8 +29,6 @@ RUN case ${TARGETPLATFORM} in \
 
 # Add the targets
 RUN rustup target add wasm32-unknown-unknown
-# This project need 0.2.93, rather newer version
-RUN cargo install -f wasm-bindgen-cli --version 0.2.93
 # Install cargo-leptos
 RUN cargo binstall cargo-leptos -y
 
@@ -46,6 +44,7 @@ COPY --from=node /usr/local/bin /usr/local/bin
 # Build the release
 ENV LEPTOS_TAILWIND_VERSION v3.3.6
 ENV LEPTOS_WASM_OPT_VERSION version_119
+RUN cargo update -p wasm-bindgen --precise 0.2.96
 RUN cargo leptos build --release
 
 # Compress with upx
