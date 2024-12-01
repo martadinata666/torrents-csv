@@ -1,5 +1,8 @@
-ROM node AS node
-WORKDIR /build
+FROM node AS node
+# Install upx
+RUN apt update && apt install -y upx-ucl git
+RUN git clone --depth=1 https://git.torrents-csv.com/heretic/torrents-csv-leptos /build/leptos
+WORKDIR /build/leptos
 
 # Enable corepack to use pnpm
 RUN corepack enable
@@ -10,8 +13,6 @@ RUN pnpm i
 
 FROM rustlang/rust:nightly-bullseye AS builder
 
-# Install upx
-RUN apt update && apt install -y upx-ucl
 
 # Install cargo-binstall, which makes it easier to install other
 # cargo extensions like cargo-leptos
@@ -31,9 +32,9 @@ RUN cargo binstall cargo-leptos -y
 # Add the targets
 RUN rustup target add wasm32-unknown-unknown
 
-# Copy the data
+# Copy the data from node
+COPY --from=node /build/leptos /build
 WORKDIR /build
-COPY . .
 
 # Copy the node_modules for daisyui, and the node binary
 COPY --from=node /build/node_modules ./node_modules
