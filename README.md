@@ -1,4 +1,5 @@
 # Torrents.csv
+## As the git source become private, no way to automate build via github anymore, archived per 25/3/25
 
 * https://git.torrents-csv.com/heretic/
 <!-- Torrents.csv - An open source, collaborative repository of torrents, with a self-hostable web server.   -->
